@@ -37,7 +37,6 @@ ECMAScript(이하 JS 또는 JavaScript)기반으로 작성한 HTML5, CSS3구동 
         intro, score를 확인할 수 있습니다.
       </p>
     </div>
-    
     <div>
       <p>
         <img src="https://postfiles.pstatic.net/MjAxOTA2MTJfMTQ4/MDAxNTYwMjY4NDk2NDMw.f63t2aOfMONWwDuEtJnuHTUTTdJJehUDCYUxC7yJPeog.KLq7rw6KFxhKFnlYjvPqwKhpp_m42SfHizG8DlZEXTUg.JPEG.wlsghd1028/slide14.JPG?type=w580"/>
