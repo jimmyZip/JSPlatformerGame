@@ -1,0 +1,37 @@
+#wrapper{
+  width:100%;
+  height:100%;
+  padding:3%;
+  box-sizing:border-box;
+  overflow:hidden;
+  color:#fff;
+}
+
+/* scoreBoard title text h2*/
+.scoreBoardTitle{
+  width:100%;
+  text-align:center;
+  font-size:2rem;
+}
+
+/* scoreBoardArea */
+#scoreBoardArea{
+  width:80%;
+  margin:0 auto;
+}
+#scoreBoardArea table{
+  width:100%;
+  border:1px solid #fff;
+}
+#scoreBoardArea table tr{
+  border-bottom:1px solid #ccc;
+}
+#scoreBoardArea table th{
+  color:red;
+  line-height:3rem;
+  font-size:2rem;
+}
+#scoreBoardArea table td{
+  text-align:center;
+  line-height:2rem;
+}

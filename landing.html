@@ -1,0 +1,107 @@
+<!doctype html>
+<html>
+ <head>
+  <title>Thanos Run landing page</title>
+  <link rel="icon" href="data:;base64,iVBORw0KGg0="/>
+  <link rel="stylesheet" href="./css/landing.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+  <script src="./js/game_menu.js"></script>
+  <script type="text/javascript">
+    function init(){
+      $("body").css({
+        "background-color":"black",
+        "width":"100%",
+        "height":window.height
+      });
+      //모달 보이는 상태 초기화
+      $("#full,#view").hide();
+      //모달 바깥쪽이나 .closeBtn을 클릭하면 모달 숨기기
+      $("#full,.closeBtn").click(function(){
+        $("#full,#view").hide();
+        $("#viewInner").html("");//모달 닫을 때 초기화 안해주니까 intro.css가 따라옴
+      });
+    }
+    window.addEventListener("load",function(){
+      init();
+    });
+
+    //game intro 보기
+    function gameIntro(){
+      //full,view나타내 모달효과 실행
+      $("#view,#full").show();
+      //#view에 표시할 정보 가져오기
+      $.ajax({
+        url:"./game_intro.html",
+        type:"GET",
+        dataType:"html",
+        success:function(html){
+          $("#viewInner").html(html);
+        },error:function(){
+          alert("에러가 발생했습니다. 다시 확인하고 연결하세요");
+        }
+      });
+    }
+
+    //player등록 후 game하러가기
+    function registPlayer(){
+      //alert("player 등록하꾸얌?");
+      var usernick = prompt("user의 nickname을 입력하세요.");
+      if(usernick!=null){
+        console.log("hello "+usernick);
+      }else{
+        usernick = prompt("user의 nickname을 입력하세요.");
+      }
+      //입력받은 user의 정보를 localStorage에 저장
+      localStorage.setItem("usernick",usernick);
+      location.href="./index.html";
+    }
+    //scoreBoard보기
+    function scoreBoard(){
+      alert("ScoreBoard는 version 2.0에서 업데이트 하겠습니다.");
+      //full,view나타내 모달효과 실행
+      $("#view,#full").show();
+      //#view에 표시할 정보 가져오기
+      $.ajax({
+        url:"./score_board.html",
+        type:"GET",
+        dataType:"html",
+        success:function(html){
+          $("#viewInner").html(html);
+        },error:function(){
+          alert("에러가 발생했습니다. 다시 확인하고 연결하세요");
+        }
+      });
+    }
+  </script>
+ </head>
+ <body>
+	<div id="wrapper">
+    <h1 id="logo">
+      <a href="landing.html" title="intro main으로 가기">
+        <img src="./images/logo_run.png" alt="로고이미지">
+      </a>
+    </h1>
+    <h2>
+      <p>Choose Menu</p>
+    </h2>
+    <div id="menuOuter">
+      <ul class="menuInner">
+        <li><a href="javascript:gameIntro()">Intro</a></li>
+        <li><a href="javascript:registPlayer()">Play Game</a></li>
+        <li><a href="javascript:scoreBoard()">Score Board</a></li>
+        <li><a href="javascript:exitGame()">Exit</a></li>
+      </ul>
+    </div>
+    <footer id="footer">
+      <p>Developer :: JIMMYZIP :: 2019</p>
+      <a target="_blank" href="https://github.com/jimmyZip">https://github.com/jimmyZip</a>
+      <p>special thanks to Zino1187</p>
+    </footer>
+    <div id="full"></div>
+    <div id="view">
+      <div class="closeBtn"><span>close</span></div>
+      <div id="viewInner"></div>
+    </div>
+	</div>
+ </body>
+</html>

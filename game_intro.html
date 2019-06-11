@@ -1,0 +1,124 @@
+<!doctype html>
+<html>
+ <head>
+  <title>Thanos Run landing page</title>
+  <link rel="stylesheet" href="./css/intro.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+  <script type="text/javascript">
+    var introArea;
+    var a=0.15;
+    var targetX=0;
+    var con;//컨트롤러 버튼 제어용
+    var conSpan;
+    var introParent;
+    var introChild;
+    var introImg;
+
+    function init(){
+      introImg = document.getElementById("introImgArea");
+      con=document.getElementsByClassName("controller")[0];
+      introParent = document.getElementById("introTxtArea");
+      introChild = introParent.children;
+      for(var a=0;a<introChild.length;a++){
+        if(a==0){
+          introChild[a].style.visibility="visible";
+        }else{
+          introChild[a].style.visibility="hidden";
+        }
+      }
+      conSpan = con.children;
+      conSpan[0].style.backgroundColor="#1bbc9b";
+      introImgArea.style.backgroundImage="url('./images/intro/intro0.jpg')";
+      introImgArea.style.backgroundSize="cover";
+      introImgArea.style.backgroundRepeat="no-repeat";
+    }
+
+
+    function setTarget(n){
+      for(var a=0;a<conSpan.length;a++){
+        if(a==n){
+          introImgArea.style.backgroundImage="url('./images/intro/intro"+n+".jpg')";
+          introImgArea.style.backgroundSize="cover";
+          introImgArea.style.backgroundRepeat="no-repeat";
+          conSpan[a].style.backgroundColor="#1bbc9b";
+        }else{
+          conSpan[a].style.backgroundColor="gold";
+        }
+      }
+      showIntroText(n);
+    }
+
+    function showIntroText(n){
+      for(var a=0;a<introChild.length;a++){
+        if(a==n){
+          introChild[a].style.visibility="visible";
+        }else{
+          introChild[a].style.visibility="hidden";
+        }
+      }
+    }
+
+    //intro 닫기
+    function skipAll(){
+      $("#full,#view").hide();
+      $("#viewInner").html("");
+    }
+
+    //intro image를 생성해서 introArea의
+    $(document).ready(function(){
+      init();
+    });
+
+  </script>
+ </head>
+  <body>
+    <div id="wrapper" style="color:white;">
+      <section id="introOuter">
+        <div id="introImgArea"></div>
+        <div id="introTxtArea">
+          <p>
+            경제위기에 황폐해진 고향 행성 Titan의 재건을 위해 고민하던 Thanos!!
+            위기를 극복하고자 모험을 떠납니다.
+          </p>
+          <p>
+            Thanos의 여행목표는 마주치는 행성마다 보유한
+            우주화폐 황금코인을 약탈하는 것이죠
+          </p>
+          <p>
+            Space Stone을 모아 finger snap을 할 때마다
+            황금코인이 Thanos에게로 날아듭니다.
+            놓치지 말고 수집하세요!!
+          </p>
+          <p>
+            Enemy와 정면충돌하면 안돼요 ㅠㅠ
+            우주선 발판 밑 화염에 추락하면 안돼요 ㅠㅠ
+            captain의 방패에 맞으면 안돼요 ㅠㅠ
+            3번 밖에 없는 Thanos의 목숨을 소중히 여겨주세요
+          </p>
+          <p>
+            Enemy를 처치할 방법이 없냐구요?
+            spacebar를 눌러 점프한 후 밟아서 처치하세요
+          </p>
+          <p>
+            단, finger snap을 하면 Fever Mode가 발동되어
+            돈 앞에 뵈는게 없는 무적상태가 7초간 유지됩니다.
+          </p>
+          <p>
+            nickname을 등록하고
+            Titan의 경제위기를 해결하러 같이 모험을 떠나요!!
+          </p>
+        </div>
+      </section>
+      <div class="controller">
+        <span onClick="setTarget(0)"></span>
+        <span onClick="setTarget(1)"></span>
+        <span onClick="setTarget(2)"></span>
+        <span onClick="setTarget(3)"></span>
+        <span onClick="setTarget(4)"></span>
+        <span onClick="setTarget(5)"></span>
+        <span onClick="setTarget(6)"></span>
+        <a href="javascript:skipAll()" class="skipBtn">skipAll</a>
+      </div>
+    </div>
+  </body>
+</html>

@@ -1,0 +1,425 @@
+<!doctype html>
+<html>
+ <head>
+  <title>Thanos Run</title>
+  <!--favicon-->
+  <link rel="icon" href="data:;base64,iVBORw0KGg0="/>
+  <link rel="stylesheet" href="./css/style.css">
+  <script src="./js/lib/lib.js"></script>
+  <script src="./js/GameObject.js"></script>
+  <script src="./js/ObjectManager.js"></script>
+  <script src="./js/Sensor.js"></script>
+  <script src="./js/Obstacle.js"></script>
+  <script src="./js/Stone.js"></script>
+  <script src="./js/Enemy.js"></script>
+  <script src="./js/Life.js"></script>
+  <script src="./js/Coin.js"></script>
+  <script src="./js/Floor.js"></script>
+  <script src="./js/Flame.js"></script>
+  <script src="./js/Hero.js"></script>
+  <script src="./js/game_menu.js"></script>
+  <script type="text/javascript">
+
+    var wrapper,lifeZone,score,guntlet,stage,controller;
+    var gl;//게임루프(setTimeout 컨트롤 용도)
+    var c_score_result=s_score_result=r_score_result=t_score_result=0;
+    var obj;
+    var bgX=0;//배경 초기 bg포지션값
+    var hero;//타노스 주인공
+    var upperSensor;
+    var frontSensor;
+    var bottomSensor;
+    var obsta;//장애물(캡틴의 방패)
+    var lifeCount=3;//게임기회(목숨)
+    var lifeChance;//목숨 객체 생성 및 공유 위한 전역화
+    var moksumArray = new Array();//목숨표시
+    var coins;
+    var stones;
+    var guntlet;
+    var miniStone;
+    //stage clear조건 관련
+    var stageCount=0;
+    var coinCount=0;
+
+    //timer 중지를 위해 timerId격으로 보관
+    var timerObsta;
+    var timerEnemy;
+    var timerStone;
+    var timerFloor;
+    var timerCoins;
+
+    var feverInterval;//feverMode 반복호출 및 interval 제거 용도
+    var feverTimeout;//일정시간 후 clearInterval 후에 clearTimeout해주기 위한 용도
+    //fever mode 발동 시 객체 등장 시간조정 용도
+    var obstaInterval=7500;
+    var enemyInterval=3000;
+    var coinInterval=1000;
+    var stoneInterval=10000;
+    var floorInterval=10;
+    var isFever=false;
+
+    var floorCount=0;//바닥 갯수 세는 용도
+    var gameFlag = true;//게임 일시정지 및 재시작 제어용 플래그 변수
+    var objectManager;
+
+    //메뉴버튼 관련
+    var gnb;
+    var now = false;
+    var gnbX=0;
+
+    function init(){
+      objectManager = new ObjectManager();
+      wrapper = document.getElementById("wrapper");
+      stage = document.getElementById("stage");
+      lifeZone = document.getElementsByClassName("lifezone")[0];
+      score = document.getElementById("score");
+      c_score=document.getElementById("c_score");//코인점수
+      s_score=document.getElementById("s_score");//스톤점수
+      r_score=document.getElementById("r_score");//달리기점수
+      t_score=document.getElementById("t_score");//토탈점수
+      guntlet = document.getElementById("guntlet");
+      miniStone = document.getElementsByClassName("miniStone");
+
+      controller = document.getElementById("controller");
+      btn1 = document.getElementsByClassName("btn1")[0];
+      btn2 = document.getElementsByClassName("btn2")[0];
+
+      createHero();
+      createObstacles();
+      createEnemy();
+      createCoins();
+      stoneEffect();
+      createFloor();
+      createFlame();
+      createLife();
+      //반복적으로 호출되어야 할 object들을 일괄처리
+      controlTimers(gameFlag,obstaInterval,enemyInterval,coinInterval,stoneInterval,floorInterval);
+
+      control();
+      hero.showScore();
+
+      //메뉴 gnb 슬라이딩 효과
+      gnb = document.getElementById("gnb");
+      setInterval("slide(gnbX)",10);
+
+      //index.html 진입 .5초 후 게임엔진이 가동되도록
+      gl = setTimeout("gameLoop()",500);
+      //gameLoop();
+    };
+
+    //setInterval적용한 timer함수들 일괄 제어 용도
+    function controlTimers(flag,obstaInterval,enemyInterval,coinInterval,stoneInterval,floorInterval){
+      if(flag==true){
+        timerObsta = setInterval(createObstacles,obstaInterval);
+        timerEnemy = setInterval(createEnemy,enemyInterval);
+        timerCoins = setInterval(createCoins,coinInterval);
+        timerStone = setInterval(stoneEffect,stoneInterval);
+        timerFloor = setInterval(createFloor,floorInterval);
+      }else{
+        if(timerObsta!=null&&timerEnemy!=null&&timerCoins!=null&&timerStone!=null&&timerFloor!=null) {
+             clearInterval(timerObsta);
+             clearInterval(timerEnemy);
+             clearInterval(timerCoins);
+             clearInterval(timerStone);
+             clearInterval(timerFloor);
+         }
+      }
+    }
+
+    //배경이미지 움직이기
+    function bgEffect(){
+      if(isFever==true){
+        bgX-=100;
+      }else if(isFever==false){
+        bgX-=20;
+      }
+      stage.style.backgroundPosition=bgX+"px 0px";
+      console.log("bgX"+stage.style.backgroundPosition);
+    }
+
+    //목숨 :: 게임기회
+    function createLife(){
+      for(var a=0;a<lifeCount;a++){
+        moksumArray[a] = document.createElement("img");
+        moksumArray[a].src = "./images/thanos_face.png";
+        moksumArray[a].style.width=40+"px";
+        moksumArray[a].style.height=40+"px";
+        moksumArray[a].style.position="absolute";
+        moksumArray[a].style.top=100+"px";
+        moksumArray[a].style.left=300+40*a+"px";
+        lifeZone.appendChild(moksumArray[a]);
+      }
+    }
+    //stage clear 조건처리
+    function stageClear(){
+      alert("stage"+stageCount+"clear!!");
+      pauseGame();
+      controlTimers(gameFlag,obstaInterval,enemyInterval,stoneInterval,floorInterval);
+    }
+
+    //히어로 타노스 등장
+    function createHero(){
+      hero = new Hero("HERO",stage,50,345,50,50,0,0,0,0,"","./images/thanos_0.png");
+      objectManager.addObject(hero);//objectManager의 ObjectArray에 등록
+    }
+
+    //장애물 등장
+    function createObstacles(){
+      var r = getRandomByRange(0,6);
+      obsta = new Obstacle("OBSTACLE",stage,1300+50*r,50+100*r,50,50,0,0,hero.x+hero.width-170,hero.y+hero.height+30,"","./images/obstacle.png");
+      objectManager.addObject(obsta);
+    }
+
+    //어벤저스 멤버 등장(enemy)
+    function createEnemy(){
+      //typeId,container,x,y,width,height,velX,velY,targetX,targetY,bg,src
+      var r = parseInt(getRandomByRange(0,6));
+      var r2 = parseInt(getRandomByRange(0,4));
+      var enemy = new Enemy("VILAIN",stage,1800,70+70*r2,80,80,-10,0,0,0,"","./images/vilain"+r+".png");
+      objectManager.addObject(enemy);
+    }
+
+    //코인 등장
+    function createCoins(){
+      if(isFever==true){
+        for(var i=0;i<10;i++){
+          coins = new Coin("COIN",stage,1300+50*i,50,50,50,-100,0,hero.x+hero.width-50,hero.y+hero.height-50,"","./images/coin.png");
+          objectManager.addObject(coins);
+        }
+      }
+    }
+
+    //스톤관련
+    function stoneEffect(){
+      for(var i=0;i<6;i++){
+        var r = getRandomByRange(0,5);
+        stones = new Stone("STONE"+i+"",stage,1200+60*i,80+50*r,60,60,-15,0,0,0,"","./images/stone"+i+".png");
+        objectManager.addObject(stones);
+      }
+    }
+
+    //바닥공사
+    function createFloor(){
+      var r = getRandomByRange(1,3);
+      var floor = new Floor("FLOOR",stage,50+200*floorCount,400,200,50,-10,0,0,0,"","./images/floor.png");
+      floorCount+=r;
+      objectManager.addObject(floor);
+    }
+
+    //바닥공사2 불꽃
+    function createFlame(){
+      var flame;
+      for(var i=0;i<45;i++){
+        flame = new Flame("FLAME",stage,50*i,450,50,50,0,0,0,0,"","./images/flame.png");
+        objectManager.addObject(flame);
+      }
+    }
+
+    /*-------------------------------------------------------
+      게임 메인캐릭터 및 기타 동작제어(점프,일시정지,재시작)
+      spacebar :: jump수행
+      esc | enter :: gameLoop 정지시키는 flag변수 반전으로 일시정지 | 재개
+    ---------------------------------------------------------*/
+    function control(){
+      var key=event.keyCode;
+      switch(key){
+        case 32://spacebar
+          event.preventDefault();
+          if(hero.jumping==false) hero.jump();
+          hero.jumping==true;
+          break;
+        case 27:pauseGame(); break;//esc
+        case 13:resumeGame(); break;//enter
+      }
+    }
+
+    //fever mode
+    function goFeverMode(){
+      bgX-=100;
+    }
+
+    //죽음 처리
+    function death(){
+      lifeZone.removeChild(moksumArray[lifeCount-1]);
+      moksumArray.pop();//remove last index element from array
+      //목숨 카운트 차감
+      lifeCount--;
+      hero.changeSrc();//dead_thanos.png로 변경
+      pauseGame();
+      if(lifeCount>0){
+        setTimeout("restartGame()",1000);
+        console.log("남은 목숨 : "+lifeCount);
+        //restartGame();
+      }else if(lifeCount<=0){
+        lifeCount=0;
+        gameFlag=false;
+        window.clearTimeout(gl);
+        console.log("남은 목숨 : "+lifeCount);
+        controlTimers(gameFlag,obstaInterval,enemyInterval,stoneInterval,floorInterval);
+        gameOver();
+      }
+    }
+    //게임 재시작
+    function restartGame(){
+      hero.resetHero();
+      //gameFlag=true;
+      resumeGame();
+    }
+
+    //게임오버
+    function gameOver(){
+      //게임오버 화면처리
+      var go = document.createElement("div");
+      go.style.width=100+"%";
+      go.style.height=100+"%";
+      go.style.backgroundColor="rgba(0,0,0,0.3)";
+      go.style.textAlign="center";
+      go.style.lineHeight=500+"px";
+      go.style.fontSize=4+"rem";
+      go.style.fontWeight=700+"px";
+      go.style.color="#fff";
+      go.innerText="Game Over T.T";
+      go.style.position="absolute";
+      go.style.left=0;
+      go.style.top=0;
+      go.style.zIndex=20;
+      stage.appendChild(go);
+      //점수 기록
+      alert("최종 점수는요~? "+t_score_result+"점");
+      localStorage.setItem("finalScore",t_score_result);
+    }
+
+    //메뉴 menubar
+    function showAndHideMenu(){
+      if(gameFlag==true){
+        pauseGame();
+      }
+      gnb.style.position="absolute";
+      gnb.style.right=-200+"px";
+      gnb.style.top=160+"px";
+      gnb.style.paddingTop=20+"px";
+      gnb.style.zIndex=99999;
+
+      if(now==false){
+        console.log("현재 gnb flag상태 : ",now);
+        //gnb.style.right=0+"px";
+        gnbX=0;
+      }else{
+        console.log("현재 gnb flag상태 : ",now);
+        //gnb.style.right=-200+"px";
+        gnbX=-200;
+      }
+      //slide(gnbX);
+      now=!now;
+    }
+    //메뉴 슬라이드 효과
+    function slide(gnbX){
+      gnb.style.right = parseFloat(gnb.style.right)+0.2*(gnbX-parseFloat(gnb.style.right))+"px";
+    }
+
+    //게임엔진, loop
+    function gameLoop(){
+      if(gameFlag==true){
+        bgEffect();
+        objectManager.tick();
+        objectManager.render();
+        setTimeout("gameLoop()",20);
+      }
+    }
+
+    /*----------------------------------------------------------
+      게임 제어
+    ----------------------------------------------------------*/
+    //게임 멈춤처리 pauseGame
+    function pauseGame(){
+      gameFlag=false;
+      //console.log("현재 gameFlag :: ",gameFlag);
+    }
+    //게임시작 또는 재개
+    function resumeGame(){
+      if(lifeCount>0){
+        gameFlag=true;
+        console.log("현재 gameFlag :: ",gameFlag);
+        gameLoop();
+      }else{
+        alert("남은 목숨이 없습니다.");
+      }
+      now=true;
+      gnbX=-200;
+      slide(gnbX);
+    }
+    /////////////////////////////////////////////////
+    window.addEventListener("load",function(){
+      init();
+      addEventListener("keydown",function(){
+        control();
+      });
+      /*
+      addEventListener("keyup",function(){
+        stop();
+      });
+      */
+    });
+  </script>
+ </head>
+ <body>
+	<div id="wrapper">
+    <div id="statusOuter">
+      <div id="statusInnerLeft">
+        <h1 id="logo">
+          <a href="./landing.html" title="intro main으로 가기">
+            <img src="./images/logo_run.png" alt="로고이미지">
+          </a>
+        </h1>
+        <h2>Thanos Run</h2>
+        <div class="lifezone">
+          <span>타노스찡 남은 목숨</span><!--목숨을 표시하는 타노스 머리가 동적으로 3개 생성예정-->
+        </div>
+        <div id="score">
+          <span>SCORE</span>
+          <img src="./images/coin.png" alt="코인이미지"><span>&nbsp;X&nbsp;</span><span id="c_score"></span>
+          <img src="./images/stone1.png" alt="스톤이미지"><span>&nbsp;X&nbsp;</span><span id="s_score"></span>
+          <span>Run X </span><span id="r_score"></span>
+          <span>TOTAL</span>&nbsp;<span id="t_score"></span>
+        </div>
+      </div>
+      <div id="guntlet">
+        <!--배경 이미지로 guntlet slot 배치-->
+        <img class="miniStone" src="./images/stone0.png">
+        <img class="miniStone" src="./images/stone1.png">
+        <img class="miniStone" src="./images/stone2.png">
+        <img class="miniStone" src="./images/stone3.png">
+        <img class="miniStone" src="./images/stone4.png">
+        <img class="miniStone" src="./images/stone5.png">
+      </div>
+      <div id="menubar" onClick="showAndHideMenu()">
+        <p class="topBar"></p>
+        <p class="midBar"></p>
+        <p class="btmBar"></p>
+      </div>
+    </div>
+    <div id="stage"><!--우주배경 이미지--></div>
+		<ul id="controller">
+			<li class="btns btn1">
+				<a href="#none" title="spacebar점프">Spacebar로 JUMP</a>
+      </li>
+      <li class="btns btn2">
+				<a href="#none" title="pause">Esc로 PAUSE</a>
+      </li>
+      <li class="btns btn3">
+				<a href="#none" title="재시작">
+          Enter로 RESUME
+        </a>
+			</li>
+		</ul>
+    <nav id="gnb">
+      <ul class="gnb_inner">
+        <li><a href="javascript:goMain()">main으로</a></li>
+        <li><a href="javascript:resumeGame()">Resume Game</a></li>
+        <li><a href="javascript:nextStage()">NextStage</a></li>
+        <li><a href="javascript:exitGame()">Exit</a></li>
+      </ul>
+    </nav>
+	</div>
+ </body>
+</html>

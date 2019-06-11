@@ -1,0 +1,55 @@
+<!doctype html>
+<html>
+ <head>
+  <title>Thanos Run landing page</title>
+  <link rel="stylesheet" href="./css/score.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+  <script type="text/javascript">
+    $(document).ready(function(){
+      init();
+    });
+    function init(){
+      console.log("score_board.html에서 init()호출");
+      var usernick = localStorage.getItem("usernick");
+      getUserNick(usernick);
+      var finalScore = localStorage.getItem("finalScore");
+      getScoreList(finalScore);
+      //alert(usernick);
+    }
+    function getUserNick(nick){
+      $(".scoreBoardTitle").append(" _ "+nick+"님");
+    }
+    function getScoreList(finalScore){
+      console.log("score_board.html에서 init()으로부터 getScoreList()호출");
+      renderScore(finalScore);
+    }
+    //scoreBoard 출력
+    function renderScore(finalScore){
+      console.log("score_board.html에서 getScoreList()로부터 renderScore()호출");
+      $("#scoreBoardArea table").html("");
+      $("#scoreBoardArea table").append("<tr>");
+      $("#scoreBoardArea table").append("<th>rank</th>");
+      $("#scoreBoardArea table").append("<th>score</th>");
+      $("#scoreBoardArea table").append("<th>regdate</th>");
+      $("#scoreBoardArea table").append("</tr>");
+
+      for(var i=0;i<finalScore.length;i++){//반복횟수 변경예정
+        $("#scoreBoardArea table").append("<tr>");
+        $("#scoreBoardArea table").append("<td>"+(i+1)+"</td>");
+        $("#scoreBoardArea table").append("<td>"+finalScore+"</td>");
+        $("#scoreBoardArea table").append("<td>regdate</td>");
+        $("#scoreBoardArea table").append("</tr>")
+      }
+    }
+
+  </script>
+ </head>
+  <body>
+    <div id="wrapper" style="color:white;">
+      <h2 class="scoreBoardTitle">My Score Records</h2>
+      <div id="scoreBoardArea">
+        <table></table>
+      </div>
+    </div>
+  </body>
+</html>
